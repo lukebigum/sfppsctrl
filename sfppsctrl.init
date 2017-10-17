@@ -1,0 +1,75 @@
+#!/bin/sh
+#
+# chkconfig: 2345 98 99
+# description: Solar Flare PPS Control
+#
+# /etc/rc.d/init.d/sfppsctrl
+#
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:
+# Required-Stop:
+# Default-Start:  3 5
+# Default-Stop: 0 6
+# Description: Turn on or off PPS on Solar Flare cards.
+# Short-Description: Solar Flare PPS Control
+### END INIT INFO
+
+. /etc/init.d/functions
+
+CTRL=/usr/sbin/sfppsctrl
+CONF=/etc/sysconfig/sfppsctrl
+
+. $CONF
+
+if [ $EUID != 0 ]; then
+  echo -n $"Only usable by root."; warning; echo
+  exit 4
+fi
+
+
+if [[ "${INTERFACES}x" == "x" ]]; then
+  echo -n $"No interfaces specified."; warning; echo
+  exit 5
+fi
+
+exec_on_interface() {
+  if [[ ! -d /sys/class/net/$2/ ]]; then
+    echo -n $"Interface ${2} doesn't exist."; warning; echo
+    return 3
+  fi
+  if [[ ! -d /sys/class/net/$2/device/pps_stats/ ]]; then
+    echo -n $"Interface ${2} doesn't appear to be a Solar Flare."; warning; echo
+    return $3
+  fi
+  echo -n $"Calling ${1} on interface ${2}... "
+  OUT=$($CTRL $1 $2 | tr -d '\n')
+  RET=$?
+  echo -n ${OUT}
+  [ $RET -eq 0 ] && success || failure
+  echo
+}
+
+start_all_interfaces() {
+  for i in $INTERFACES; do
+    exec_on_interface enable $i
+  done
+}
+
+stop_all_interfaces() {
+  for i in $INTERFACES; do
+    exec_on_interface disable $i
+  done
+}
+
+case "$1" in
+  start) start_all_interfaces
+         ;;
+  stop)  stop_all_interfaces
+         ;;
+  *) echo $"Usage: ${CTRL} (start|stop)"
+     RETVAL=2
+     ;;
+esac
+
+exit $RETVAL

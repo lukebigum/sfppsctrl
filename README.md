@@ -7,7 +7,9 @@ It's useful for simulating 1PPS media failures and measuring drift while free ru
 having to run Solar Flare's sfptpd daemon.
 
 It is hard coded with the ioctl numbers and structures from OpenOnload version 201606-u1.2, under the assumption that those won't
-change much between releases. I can't guarantee it will work with any in-kernel driver that's not Onload though.
+change much between releases.
+
+It will work not work with any in-kernel Solar Flare driver, it will only work with the out-of-tree Onload driver.
 
 Usage
 =====
@@ -15,6 +17,22 @@ Usage
 ```bash
 sudo ./sfppsctrl enable eth1
 sudo ./sfppsctrl disable eth1
+```
+
+As A Service
+============
+
+The RPM installs a simple init script to start/stop 1PPS on a set of interfaces on boot.
+
+RPM
+===
+
+There is a very basic Red Hat style Spec file included:
+
+```bash
+make dist
+cp sfppsctrl-${version}.tar.gz ~/rpmbuild/SOURCES
+rpmbuild -ba sfppsctrl.spec
 ```
 
 License

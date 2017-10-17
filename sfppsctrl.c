@@ -115,5 +115,6 @@ int main (int argc, char *argv[])
        exit(0);
      }
      perror("ioctl");
+     exit(1);
    }
 }
